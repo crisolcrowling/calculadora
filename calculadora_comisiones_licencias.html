@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Comisiones y Licencias</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        h1 { color: #1a202c; margin-bottom: 8px; font-size: 28px; }
+        h2 { color: #2d3748; margin-bottom: 16px; font-size: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 8px; }
+        .subtitle { color: #718096; margin-bottom: 20px; font-size: 14px; }
+        
+        .tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 12px 24px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f7fafc;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .tab:hover { border-color: #667eea; }
+        .tab.active { background: #667eea; color: white; border-color: #667eea; }
+        
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        
+        .form-group { margin-bottom: 20px; }
+        label {
+            display: block;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 8px;
+        }
+        select, input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+        select:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .toggle-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .toggle-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f7fafc;
+            cursor: pointer;
+            text-align: center;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .toggle-btn:hover { border-color: #667eea; }
+        .toggle-btn.active { background: #667eea; color: white; border-color: #667eea; }
+        
+        .preview-badges {
+            display: flex;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .badge-precio {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        .badge-grupo {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .results {
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 24px;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #cbd5e0;
+        }
+        .result-row:last-child { border-bottom: none; }
+        .result-label {
+            font-weight: 600;
+            color: #2d3748;
+        }
+        .result-value {
+            font-size: 20px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .result-total {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .result-total .result-label {
+            font-size: 18px;
+            color: #1a202c;
+        }
+        .result-total .result-value {
+            font-size: 32px;
+            color: #10b981;
+        }
+        
+        .info-badge {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .success-badge {
+            display: inline-block;
+            background: #d1fae5;
+            color: #065f46;
+            padding: 4px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        
+        .ilustracion-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+        }
+        .ilustracion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .ilustracion-numero {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        .btn-eliminar {
+            background: #fee2e2;
+            color: #991b1b;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        .btn-eliminar:hover { background: #fecaca; }
+        
+        .btn-add {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-add:hover { background: #5568d3; }
+        
+        .desglose-ilustracion {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #667eea;
+        }
+        .desglose-header {
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 8px;
+        }
+        .desglose-detalle {
+            font-size: 14px;
+            color: #4a5568;
+            margin-bottom: 4px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background: #edf2f7;
+            font-weight: 600;
+            color: #2d3748;
+        }
+        tr:hover { background: #f7fafc; }
+        .price { font-weight: bold; color: #667eea; }
+        
+        .hidden { display: none; }
+        
+        @media (max-width: 768px) {
+            .grid-2 { grid-template-columns: 1fr; }
+            .toggle-group { flex-direction: column; }
+            .tabs { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>💰 Calculadora de Comisiones y Licencias</h1>
+            <p class="subtitle">Sistema completo de precios</p>
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <div class="tab active" onclick="cambiarTab('simple')">📝 Calculadora Simple</div>
+                <div class="tab" onclick="cambiarTab('multiple')">📚 Múltiples Standalone</div>
+                <div class="tab" onclick="cambiarTab('tablas')">📊 Tablas de Referencia</div>
+            </div>
+        </div>
+
+        <!-- TAB 1: CALCULADORA SIMPLE -->
+        <div id="tab-simple" class="tab-content active">
+            <div class="card">
+                <h2>1. Configuración de la Ilustración</h2>
+                
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Número de personajes</label>
+                        <select id="numPersonajes" onchange="actualizarPreviewSimple()">
+                            <option value="1">1 personaje</option>
+                            <option value="2">2 personajes</option>
+                            <option value="3">3 personajes</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Tipo de plano</label>
+                        <select id="tipoPlano" onchange="actualizarPreviewSimple()">
+                            <option value="primer">Primer plano</option>
+                            <option value="medio">Plano medio</option>
+                            <option value="largo">Plano largo</option>
+                            <option value="completo">Plano completo</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Complejidad del fondo</label>
+                    <select id="complejidadFondo" onchange="actualizarPreviewSimple()">
+                        <option value="plano">Plano</option>
+                        <option value="sencillo">Fondo sencillo</option>
+                        <option value="medio">Fondo medio</option>
+                        <option value="complejo">Fondo complejo</option>
+                    </select>
+                </div>
+
+                <div class="preview-badges">
+                    <div class="badge badge-precio" id="preview-precio">💰 Comisión: 180€</div>
+                    <div class="badge badge-grupo" id="preview-grupo">📊 G1 - Básico</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>2. Configuración de la Licencia</h2>
+                
+                <div class="form-group">
+                    <label>Modalidad de venta</label>
+                    <div class="toggle-group">
+                        <div class="toggle-btn active" onclick="cambiarModalidadSimple('pack')">Pack (con comisión)</div>
+                        <div class="toggle-btn" onclick="cambiarModalidadSimple('standalone')">Standalone (catálogo)</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Categoría de licencia</label>
+                    <select id="categoriaSimple" onchange="actualizarLicenciasSimple()">
+                        <option value="personal">Personal (sin licencia comercial)</option>
+                        <option value="promocional">Promocional</option>
+                        <option value="editorial">Editorial</option>
+                        <option value="cajas">Cajas</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Tipo de licencia</label>
+                    <select id="tipoLicenciaSimple" onchange="calcularSimple()"></select>
+                </div>
+
+                <div class="form-group hidden" id="autorIndieGroupSimple">
+                    <label>¿Es autor indie?</label>
+                    <div class="toggle-group">
+                        <div class="toggle-btn active" onclick="cambiarAutorIndieSimple(false)">No</div>
+                        <div class="toggle-btn" onclick="cambiarAutorIndieSimple(true)">Sí</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Resultados</h2>
+                <div class="results" id="resultadosSimple"></div>
+            </div>
+        </div>
+
+        <!-- TAB 2: MÚLTIPLES STANDALONE -->
+        <div id="tab-multiple" class="tab-content">
+            <div class="card">
+                <h2>Ilustraciones Standalone</h2>
+                <div id="ilustraciones-container"></div>
+                <button class="btn-add" onclick="agregarIlustracion()">+ Agregar Ilustración</button>
+            </div>
+
+            <div class="card">
+                <h2>📊 Resultados</h2>
+                <div class="results" id="resultadosMultiple"></div>
+            </div>
+        </div>
+
+        <!-- TAB 3: TABLAS DE REFERENCIA -->
+        <div id="tab-tablas" class="tab-content">
+            <div class="card">
+                <h2>Tabla de Precios de Comisiones</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Personajes</th>
+                            <th>Plano</th>
+                            <th>Fondo Plano/Sencillo</th>
+                            <th>Fondo Medio</th>
+                            <th>Fondo Complejo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-comisiones"></tbody>
+                </table>
+            </div>
+
+            <div class="card">
+                <h2>Tabla de Licencias por Grupo</h2>
+                <p style="margin-bottom: 16px; color: #718096;">Los grupos se determinan automáticamente según el precio de la comisión:<br>
+                <strong>G1</strong>: 180-260€ | <strong>G2</strong>: 280-400€ | <strong>G3</strong>: 420-620€ | <strong>G4</strong>: 640-940€</p>
+                
+                <div class="grid-2">
+                    <div>
+                        <h3 style="margin-bottom: 12px;">Pack (con comisión)</h3>
+                        <table id="tabla-licencias-pack"></table>
+                    </div>
+                    <div>
+                        <h3 style="margin-bottom: 12px;">Standalone (+50€)</h3>
+                        <table id="tabla-licencias-standalone"></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const PRECIOS_COMISION = {
+            1: { primer: [180, 220, 260], medio: [220, 260, 300], largo: [400, 440, 480], completo: [580, 620, 660] },
+            2: { primer: [220, 260, 300], medio: [280, 320, 360], largo: [500, 540, 580], completo: [720, 760, 800] },
+            3: { primer: [260, 300, 340], medio: [340, 380, 420], largo: [600, 640, 680], completo: [860, 900, 940] }
+        };
+
+        const DATOS_LICENCIAS = {
+            preciosBase: {
+                personal: 0, digital: 35, freebies: 70, etiquetado: 120,
+                indie: 120, pequena: 190, mediana: 270, grande: 430,
+                caja_pequena: 70, caja_mediana: 150, caja_grande: 280
+            },
+            progresiones: {
+                personal: [0, 0, 0, 0], digital: [15, 30, 60, 120], freebies: [15, 30, 60, 120],
+                etiquetado: [20, 40, 80, 160], indie: [20, 40, 80, 160], pequena: [25, 50, 100, 200],
+                mediana: [30, 60, 120, 240], grande: [35, 70, 140, 280],
+                caja_pequena: [20, 40, 80, 160], caja_mediana: [25, 50, 100, 200], caja_grande: [30, 60, 120, 240]
+            },
+            licencias: {
+                personal: [{ key: 'personal', nombre: 'Uso Personal' }],
+                promocional: [{ key: 'digital', nombre: 'Digital' }, { key: 'freebies', nombre: 'Freebies' }, { key: 'etiquetado', nombre: 'Etiquetado' }],
+                editorial: [{ key: 'indie', nombre: 'Autor Indie' }, { key: 'pequena', nombre: 'Editorial Pequeña' }, { key: 'mediana', nombre: 'Editorial Mediana' }, { key: 'grande', nombre: 'Editorial Grande' }],
+                cajas: [{ key: 'caja_pequena', nombre: 'Caja Pequeña' }, { key: 'caja_mediana', nombre: 'Caja Mediana' }, { key: 'caja_grande', nombre: 'Caja Grande' }]
+            },
+            standaloneDescuentos: { 1: 0, 2: 3, 3: 5, 4: 8 },
+            freebiesIndieDescuentos: [10, 20, 40, 80]
+        };
+
+        let modalidadSimple = 'pack';
+        let autorIndieSimple = false;
+        let ilustraciones = [];
+        let nextId = 1;
+
+        function determinarGrupo(precioComision) {
+            if (precioComision >= 180 && precioComision <= 260) return 0; // G1
+            if (precioComision >= 280 && precioComision <= 400) return 1; // G2
+            if (precioComision >= 420 && precioComision <= 620) return 2; // G3
+            if (precioComision >= 640 && precioComision <= 940) return 3; // G4
+            return 0; // fallback a G1 si no encaja
+        }
+
+        function getNombreGrupo(grupo) {
+            return ['G1 - Básico', 'G2 - Estándar', 'G3 - Complejo', 'G4 - Muy Complejo'][grupo];
+        }
+
+        function calcularPrecioComision(numPersonajes, tipoPlano, complejidadFondo) {
+            const fondoIndex = { plano: 0, sencillo: 0, medio: 1, complejo: 2 };
+            return PRECIOS_COMISION[numPersonajes][tipoPlano][fondoIndex[complejidadFondo]];
+        }
+
+        function calcularPrecioLicencia(licKey, grupoIdx, conComision = true) {
+            const base = DATOS_LICENCIAS.preciosBase[licKey];
+            const incremento = DATOS_LICENCIAS.progresiones[licKey][grupoIdx];
+            const precioComision = base + incremento;
+            
+            if (conComision) return precioComision;
+            if (licKey === 'indie' || licKey === 'freebies' || licKey === 'personal') return precioComision;
+            return precioComision + 50;
+        }
+
+        // ===== TAB SIMPLE =====
+        function actualizarPreviewSimple() {
+            const numPersonajes = parseInt(document.getElementById('numPersonajes').value);
+            const tipoPlano = document.getElementById('tipoPlano').value;
+            const complejidadFondo = document.getElementById('complejidadFondo').value;
+            
+            const precio = calcularPrecioComision(numPersonajes, tipoPlano, complejidadFondo);
+            const grupo = determinarGrupo(precio);
+            
+            document.getElementById('preview-precio').textContent = `💰 Comisión: ${precio}€`;
+            document.getElementById('preview-grupo').textContent = `📊 ${getNombreGrupo(grupo)}`;
+            
+            calcularSimple();
+        }
+
+        function actualizarLicenciasSimple() {
+            const categoria = document.getElementById('categoriaSimple').value;
+            const select = document.getElementById('tipoLicenciaSimple');
+            const licencias = DATOS_LICENCIAS.licencias[categoria];
+            
+            select.innerHTML = '';
+            licencias.forEach(lic => {
+                const option = document.createElement('option');
+                option.value = lic.key;
+                option.textContent = lic.nombre;
+                select.appendChild(option);
+            });
+
+            const tipoLicencia = select.value;
+            const mostrarAutorIndie = categoria === 'promocional' && (tipoLicencia === 'digital' || tipoLicencia === 'freebies');
+            document.getElementById('autorIndieGroupSimple').classList.toggle('hidden', !mostrarAutorIndie);
+            
+            if (!mostrarAutorIndie) autorIndieSimple = false;
+            
+            calcularSimple();
+        }
+
+        function cambiarModalidadSimple(modo) {
+            modalidadSimple = modo;
+            const btns = document.querySelectorAll('#tab-simple .toggle-group')[0].querySelectorAll('.toggle-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Si es standalone y personal, cambiar a promocional
+            if (modo === 'standalone' && document.getElementById('categoriaSimple').value === 'personal') {
+                document.getElementById('categoriaSimple').value = 'promocional';
+                actualizarLicenciasSimple();
+            }
+            
+            calcularSimple();
+        }
+
+        function cambiarAutorIndieSimple(esIndie) {
+            autorIndieSimple = esIndie;
+            const btns = document.querySelectorAll('#autorIndieGroupSimple .toggle-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            calcularSimple();
+        }
+
+        function calcularSimple() {
+            const numPersonajes = parseInt(document.getElementById('numPersonajes').value);
+            const tipoPlano = document.getElementById('tipoPlano').value;
+            const complejidadFondo = document.getElementById('complejidadFondo').value;
+            const tipoLicencia = document.getElementById('tipoLicenciaSimple').value;
+            const categoria = document.getElementById('categoriaSimple').value;
+            
+            // Validar standalone con personal
+            if (modalidadSimple === 'standalone' && categoria === 'personal') {
+                document.getElementById('resultadosSimple').innerHTML = '<p style="text-align: center; color: #991b1b; padding: 20px;">⚠️ No se vende licencia personal en modo standalone</p>';
+                return;
+            }
+            
+            const precioComision = calcularPrecioComision(numPersonajes, tipoPlano, complejidadFondo);
+            const grupo = determinarGrupo(precioComision);
+            let precioLicencia = calcularPrecioLicencia(tipoLicencia, grupo, modalidadSimple === 'pack');
+
+            let notas = [];
+
+            // Aplicar descuento autor indie
+            if (autorIndieSimple && categoria === 'promocional') {
+                if (tipoLicencia === 'digital') {
+                    precioLicencia = 0;
+                    notas.push('<span class="success-badge">Digital GRATIS para autor indie</span>');
+                } else if (tipoLicencia === 'freebies') {
+                    const descuentoIndie = DATOS_LICENCIAS.freebiesIndieDescuentos[grupo];
+                    precioLicencia -= descuentoIndie;
+                    notas.push(`<span class="info-badge">Descuento autor indie: -${descuentoIndie}€</span>`);
+                }
+            }
+
+            const total = modalidadSimple === 'pack' ? precioComision + precioLicencia : precioLicencia;
+
+            let html = '';
+            
+            if (modalidadSimple === 'pack') {
+                html += `
+                    <div class="result-row">
+                        <span class="result-label">Precio de la comisión:</span>
+                        <span class="result-value">${precioComision}€</span>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="result-row">
+                    <span class="result-label">Precio de la licencia ${modalidadSimple === 'pack' ? '(pack)' : '(standalone)'}:</span>
+                    <span class="result-value">${precioLicencia}€</span>
+                </div>
+                <div class="result-total">
+                    <div class="result-row">
+                        <span class="result-label">TOTAL A COBRAR:</span>
+                        <span class="result-value">${total}€</span>
+                    </div>
+                </div>
+            `;
+
+            if (modalidadSimple === 'standalone' && tipoLicencia !== 'indie' && tipoLicencia !== 'freebies' && tipoLicencia !== 'personal') {
+                notas.push('<span class="info-badge">Incluye recargo +50€ standalone</span>');
+            }
+
+            if (notas.length > 0) {
+                html += `<div style="margin-top: 16px;">${notas.join(' ')}</div>`;
+            }
+
+            document.getElementById('resultadosSimple').innerHTML = html;
+        }
+
+        // ===== TAB MÚLTIPLE =====
+        function agregarIlustracion() {
+            ilustraciones.push({
+                id: nextId++,
+                numPersonajes: 1,
+                tipoPlano: 'primer',
+                complejidadFondo: 'plano',
+                categoria: 'promocional',
+                tipoLicencia: 'digital',
+                autorIndie: false
+            });
+            renderIlustraciones();
+            calcularMultiple();
+        }
+
+        function eliminarIlustracion(id) {
+            ilustraciones = ilustraciones.filter(i => i.id !== id);
+            renderIlustraciones();
+            calcularMultiple();
+        }
+
+        function actualizarIlustracion(id, campo, valor) {
+            const ilus = ilustraciones.find(i => i.id === id);
+            if (ilus) {
+                ilus[campo] = campo === 'numPersonajes' ? parseInt(valor) : valor;
+                
+                // Si cambia categoría, resetear licencia
+                if (campo === 'categoria') {
+                    const licencias = DATOS_LICENCIAS.licencias[valor];
+                    ilus.tipoLicencia = licencias[0].key;
+                    ilus.autorIndie = false;
+                }
+                
+                renderIlustraciones();
+                calcularMultiple();
+            }
+        }
+
+        function renderIlustraciones() {
+            const container = document.getElementById('ilustraciones-container');
+            
+            if (ilustraciones.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #718096; padding: 20px;">No hay ilustraciones. Haz clic en "Agregar Ilustración" para comenzar.</p>';
+                return;
+            }
+
+            container.innerHTML = ilustraciones.map((ilus, idx) => {
+                const precio = calcularPrecioComision(ilus.numPersonajes, ilus.tipoPlano, ilus.complejidadFondo);
+                const grupo = determinarGrupo(precio);
+                const mostrarAutorIndie = ilus.categoria === 'promocional' && (ilus.tipoLicencia === 'digital' || ilus.tipoLicencia === 'freebies');
+                
+                return `
+                    <div class="ilustracion-card">
+                        <div class="ilustracion-header">
+                            <span class="ilustracion-numero">Ilustración ${idx + 1}</span>
+                            <button class="btn-eliminar" onclick="eliminarIlustracion(${ilus.id})">Eliminar</button>
+                        </div>
+                        
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Personajes</label>
+                                <select onchange="actualizarIlustracion(${ilus.id}, 'numPersonajes', this.value)">
+                                    <option value="1" ${ilus.numPersonajes === 1 ? 'selected' : ''}>1 personaje</option>
+                                    <option value="2" ${ilus.numPersonajes === 2 ? 'selected' : ''}>2 personajes</option>
+                                    <option value="3" ${ilus.numPersonajes === 3 ? 'selected' : ''}>3 personajes</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Tipo de plano</label>
+                                <select onchange="actualizarIlustracion(${ilus.id}, 'tipoPlano', this.value)">
+                                    <option value="primer" ${ilus.tipoPlano === 'primer' ? 'selected' : ''}>Primer plano</option>
+                                    <option value="medio" ${ilus.tipoPlano === 'medio' ? 'selected' : ''}>Plano medio</option>
+                                    <option value="largo" ${ilus.tipoPlano === 'largo' ? 'selected' : ''}>Plano largo</option>
+                                    <option value="completo" ${ilus.tipoPlano === 'completo' ? 'selected' : ''}>Plano completo</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Complejidad del fondo</label>
+                            <select onchange="actualizarIlustracion(${ilus.id}, 'complejidadFondo', this.value)">
+                                <option value="plano" ${ilus.complejidadFondo === 'plano' ? 'selected' : ''}>Plano</option>
+                                <option value="sencillo" ${ilus.complejidadFondo === 'sencillo' ? 'selected' : ''}>Fondo sencillo</option>
+                                <option value="medio" ${ilus.complejidadFondo === 'medio' ? 'selected' : ''}>Fondo medio</option>
+                                <option value="complejo" ${ilus.complejidadFondo === 'complejo' ? 'selected' : ''}>Fondo complejo</option>
+                            </select>
+                        </div>
+                        
+                        <div class="preview-badges">
+                            <div class="badge badge-precio">💰 Comisión: ${precio}€</div>
+                            <div class="badge badge-grupo">📊 ${getNombreGrupo(grupo)}</div>
+                        </div>
+                        
+                        <div style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
+                            <div class="form-group">
+                                <label>Categoría de licencia</label>
+                                <select onchange="actualizarIlustracion(${ilus.id}, 'categoria', this.value)">
+                                    <option value="promocional" ${ilus.categoria === 'promocional' ? 'selected' : ''}>Promocional</option>
+                                    <option value="editorial" ${ilus.categoria === 'editorial' ? 'selected' : ''}>Editorial</option>
+                                    <option value="cajas" ${ilus.categoria === 'cajas' ? 'selected' : ''}>Cajas</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Tipo de licencia</label>
+                                <select onchange="actualizarIlustracion(${ilus.id}, 'tipoLicencia', this.value)">
+                                    ${DATOS_LICENCIAS.licencias[ilus.categoria].map(lic => 
+                                        `<option value="${lic.key}" ${ilus.tipoLicencia === lic.key ? 'selected' : ''}>${lic.nombre}</option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            
+                            ${mostrarAutorIndie ? `
+                            <div class="form-group">
+                                <label>¿Es autor indie?</label>
+                                <div class="toggle-group">
+                                    <div class="toggle-btn ${!ilus.autorIndie ? 'active' : ''}" onclick="actualizarIlustracion(${ilus.id}, 'autorIndie', false)">No</div>
+                                    <div class="toggle-btn ${ilus.autorIndie ? 'active' : ''}" onclick="actualizarIlustracion(${ilus.id}, 'autorIndie', true)">Sí</div>
+                                </div>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function calcularMultiple() {
+            if (ilustraciones.length === 0) {
+                document.getElementById('resultadosMultiple').innerHTML = '<p style="text-align: center; color: #718096;">Agrega al menos una ilustración para ver los resultados.</p>';
+                return;
+            }
+
+            const numIlustraciones = ilustraciones.length;
+            const descuentoPorcentaje = DATOS_LICENCIAS.standaloneDescuentos[numIlustraciones >= 4 ? 4 : numIlustraciones] || 0;
+
+            let totalLicencias = 0;
+            let desglose = [];
+
+            ilustraciones.forEach((ilus, idx) => {
+                const precioComision = calcularPrecioComision(ilus.numPersonajes, ilus.tipoPlano, ilus.complejidadFondo);
+                const grupo = determinarGrupo(precioComision);
+                let precioLicencia = calcularPrecioLicencia(ilus.tipoLicencia, grupo, false);
+
+                let notasIlus = [];
+                
+                // Aplicar descuento autor indie
+                if (ilus.autorIndie && ilus.categoria === 'promocional') {
+                    if (ilus.tipoLicencia === 'digital') {
+                        precioLicencia = 0;
+                        notasIlus.push('Digital GRATIS (indie)');
+                    } else if (ilus.tipoLicencia === 'freebies') {
+                        const descuentoIndie = DATOS_LICENCIAS.freebiesIndieDescuentos[grupo];
+                        precioLicencia -= descuentoIndie;
+                        notasIlus.push(`-${descuentoIndie}€ indie`);
+                    }
+                }
+
+                // Aplicar descuento por volumen
+                let precioLicenciaFinal = precioLicencia;
+                if (descuentoPorcentaje > 0) {
+                    precioLicenciaFinal = Math.round(precioLicencia * (100 - descuentoPorcentaje) / 100);
+                }
+
+                totalLicencias += precioLicenciaFinal;
+
+                const licenciaNombre = DATOS_LICENCIAS.licencias[ilus.categoria].find(l => l.key === ilus.tipoLicencia)?.nombre || '';
+                
+                desglose.push({
+                    numero: idx + 1,
+                    grupo: getNombreGrupo(grupo),
+                    licencia: licenciaNombre,
+                    precio: precioLicenciaFinal,
+                    notas: notasIlus
+                });
+            });
+
+            let html = '';
+
+            // Desglose
+            desglose.forEach(d => {
+                html += `
+                    <div class="desglose-ilustracion">
+                        <div class="desglose-header">Ilustración ${d.numero} - ${d.grupo}</div>
+                        <div class="desglose-detalle">Licencia: ${d.licencia} - ${d.precio}€ ${d.notas.length > 0 ? `<span style="color: #10b981; font-size: 12px;">(${d.notas.join(', ')})</span>` : ''}</div>
+                    </div>
+                `;
+            });
+
+            // Totales
+            html += `
+                <div class="result-row">
+                    <span class="result-label">Total Licencias (${numIlustraciones} ${numIlustraciones === 1 ? 'ilustración' : 'ilustraciones'}):</span>
+                    <span class="result-value">${totalLicencias}€</span>
+                </div>
+            `;
+
+            if (descuentoPorcentaje > 0) {
+                html += `
+                    <div class="result-row">
+                        <span class="result-label">Descuento por volumen aplicado:</span>
+                        <span class="result-value" style="color: #10b981;">${descuentoPorcentaje}%</span>
+                    </div>
+                `;
+            }
+
+            html += `
+                <div class="result-total">
+                    <div class="result-row">
+                        <span class="result-label">TOTAL A COBRAR:</span>
+                        <span class="result-value">${totalLicencias}€</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('resultadosMultiple').innerHTML = html;
+        }
+
+        // ===== TAB TABLAS =====
+        function renderTablas() {
+            // Tabla de comisiones
+            let htmlComisiones = '';
+            for (const [numPers, planos] of Object.entries(PRECIOS_COMISION)) {
+                for (const [plano, precios] of Object.entries(planos)) {
+                    const nombrePlano = { primer: 'Primer plano', medio: 'Plano medio', largo: 'Plano largo', completo: 'Plano completo' }[plano];
+                    htmlComisiones += `
+                        <tr>
+                            <td>${numPers}</td>
+                            <td>${nombrePlano}</td>
+                            <td class="price">${precios[0]}€</td>
+                            <td class="price">${precios[1]}€</td>
+                            <td class="price">${precios[2]}€</td>
+                        </tr>
+                    `;
+                }
+            }
+            document.getElementById('tabla-comisiones').innerHTML = htmlComisiones;
+
+            // Tabla de licencias Pack
+            let htmlPack = '<thead><tr><th>Licencia</th><th>G1</th><th>G2</th><th>G3</th><th>G4</th></tr></thead><tbody>';
+            for (const [cat, lics] of Object.entries(DATOS_LICENCIAS.licencias)) {
+                if (cat === 'personal') continue;
+                for (const lic of lics) {
+                    const g1 = calcularPrecioLicencia(lic.key, 0, true);
+                    const g2 = calcularPrecioLicencia(lic.key, 1, true);
+                    const g3 = calcularPrecioLicencia(lic.key, 2, true);
+                    const g4 = calcularPrecioLicencia(lic.key, 3, true);
+                    htmlPack += `
+                        <tr>
+                            <td><strong>${lic.nombre}</strong></td>
+                            <td class="price">${g1}€</td>
+                            <td class="price">${g2}€</td>
+                            <td class="price">${g3}€</td>
+                            <td class="price">${g4}€</td>
+                        </tr>
+                    `;
+                }
+            }
+            htmlPack += '</tbody>';
+            document.getElementById('tabla-licencias-pack').innerHTML = htmlPack;
+
+            // Tabla de licencias Standalone
+            let htmlStandalone = '<thead><tr><th>Licencia</th><th>G1</th><th>G2</th><th>G3</th><th>G4</th></tr></thead><tbody>';
+            for (const [cat, lics] of Object.entries(DATOS_LICENCIAS.licencias)) {
+                if (cat === 'personal') continue;
+                for (const lic of lics) {
+                    const g1 = calcularPrecioLicencia(lic.key, 0, false);
+                    const g2 = calcularPrecioLicencia(lic.key, 1, false);
+                    const g3 = calcularPrecioLicencia(lic.key, 2, false);
+                    const g4 = calcularPrecioLicencia(lic.key, 3, false);
+                    htmlStandalone += `
+                        <tr>
+                            <td><strong>${lic.nombre}</strong></td>
+                            <td class="price">${g1}€</td>
+                            <td class="price">${g2}€</td>
+                            <td class="price">${g3}€</td>
+                            <td class="price">${g4}€</td>
+                        </tr>
+                    `;
+                }
+            }
+            htmlStandalone += '</tbody>';
+            document.getElementById('tabla-licencias-standalone').innerHTML = htmlStandalone;
+        }
+
+        // ===== NAVEGACIÓN TABS =====
+        function cambiarTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            
+            if (tab === 'tablas') renderTablas();
+        }
+
+        // Inicializar
+        actualizarLicenciasSimple();
+        actualizarPreviewSimple();
+        renderIlustraciones();
+    </script>
+</body>
+</html>
